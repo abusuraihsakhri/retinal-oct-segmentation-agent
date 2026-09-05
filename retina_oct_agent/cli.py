@@ -5,6 +5,7 @@ import argparse
 import csv
 import json
 import sys
+from pathlib import Path
 from .models import FrontierPayload
 from .agents import RetinaOCTCoordinator
 
@@ -69,7 +70,26 @@ def main(argv=None):
         return 0
 
     if args.command == "batch":
-        with open(args.input, mode="r", encoding="utf-8-sig") as f:
+        # Validate input file exists and is within working directory
+        input_path = Path(args.input).resolve()
+        output_path = Path(args.output).resolve()
+        cwd = Path.cwd().resolve()
+
+        if not input_path.exists():
+            print(f"Error: Input file not found: {args.input}", file=sys.stderr)
+            return 1
+        if not input_path.is_file():
+            print(f"Error: Input path is not a file: {args.input}", file=sys.stderr)
+            return 1
+        # Prevent path traversal: ensure resolved paths are within cwd
+        try:
+            input_path.relative_to(cwd)
+            output_path.relative_to(cwd)
+        except ValueError:
+            print("Error: Input and output paths must be within the working directory", file=sys.stderr)
+            return 1
+
+        with open(input_path, mode="r", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             fieldnames = list(reader.fieldnames or [])
             rows = list(reader)
@@ -77,14 +97,18 @@ def main(argv=None):
         out_fields = fieldnames + ["overall_status", "total_alerts", "critical_count", "consensus_summary"]
         out_rows = []
         for r in rows:
-            payload = FrontierPayload(
-                task_id=r.get("task_id", "TASK-01"),
-                target_identifier=r.get("target_identifier", "TARGET-01"),
-                primary_metric=float(r.get("primary_metric", 15.0)),
-                secondary_metric=float(r.get("secondary_metric", 5.0)),
-                status_descriptor=r.get("status_descriptor", "NOMINAL"),
-                is_critical_flag=bool(r.get("is_critical_flag", False)),
-            )
+            try:
+                payload = FrontierPayload(
+                    task_id=r.get("task_id", "TASK-01"),
+                    target_identifier=r.get("target_identifier", "TARGET-01"),
+                    primary_metric=float(r.get("primary_metric", 15.0)),
+                    secondary_metric=float(r.get("secondary_metric", 5.0)),
+                    status_descriptor=r.get("status_descriptor", "NOMINAL"),
+                    is_critical_flag=str(r.get("is_critical_flag", "")).lower() in ("true", "1", "yes"),
+                )
+            except (ValueError, Exception) as e:
+                print(f"Warning: Skipping malformed row {r}: {e}", file=sys.stderr)
+                continue
             dossier = coordinator.process(payload)
             row_dict = dict(r)
             row_dict["overall_status"] = dossier["overall_status"]
@@ -93,7 +117,7 @@ def main(argv=None):
             row_dict["consensus_summary"] = dossier["consensus_summary"]
             out_rows.append(row_dict)
 
-        with open(args.output, mode="w", encoding="utf-8", newline="") as f:
+        with open(output_path, mode="w", encoding="utf-8", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=out_fields)
             writer.writeheader()
             writer.writerows(out_rows)

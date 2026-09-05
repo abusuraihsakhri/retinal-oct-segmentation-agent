@@ -8,3 +8,15 @@ output.csv
 dist/
 build/
 *.egg-info/
+.venv/
+venv/
+.env
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+*.pot
+*.py,cover
+.hypothesis/
+*_output.csv
+_test_batch_*.csv
