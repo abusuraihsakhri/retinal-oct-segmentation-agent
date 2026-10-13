@@ -105,6 +105,6 @@ class RetinaOCTCoordinator:
         if "status" in q or "ledger" in q:
             return f"RetinaOCT-AI: Optical Coherence Tomography Layer & Biomarker Agent currently managing {len(self.execution_ledger)} execution tasks in air-gapped memory."
         elif "standard" in q or "spec" in q:
-            return "Active runtime operating strictly according to Ophthalmic OCT Layer Nomenclature specifications."
+            return "Ophthalmic OCT Layer Nomenclature is used as a descriptive label; this demo does not validate OCT segmentation."
         else:
-            return f"RetinaOCT-AI: Optical Coherence Tomography Layer & Biomarker Agent executive coordinator online. Zero-telemetry on-premises surveillance active."
+            return "Local threshold-evaluation demonstration is available. No OCT image segmentation or clinical verification is performed."

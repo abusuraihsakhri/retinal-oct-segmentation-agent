@@ -15,7 +15,7 @@ def create_app():
 
         app = FastAPI(
             title="RetinaOCT-AI: Optical Coherence Tomography Layer & Biomarker Agent",
-            description="Segments 10 retinal layers (ILM, RPE, BM), measuring Central Subfield Thickness (CST) and detecting subretinal fluid (SRF).",
+            description="Demonstrates threshold and descriptor evaluation only. Does not process OCT images, measure retinal layers, or detect fluid.",
             version="2.0.0-FRONTIER",
         )
 

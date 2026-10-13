@@ -1,198 +1,81 @@
 # Retinal OCT Segmentation Agent
 
-> **Domain:** Clinical Decision Support & Biomedical Computing  
-> **Reference Guidelines & Standards:** `Standard Clinical Formulations & ISO/IEC Quality Frameworks`
+**Implementation status:** This repository is a *deterministic threshold-evaluation demonstration*. Despite its historical name, it **does not implement retinal OCT image segmentation**. It does not accept OCT images, segment retinal layers, measure retinal thickness, quantify fluid, or validate clinical outcomes. Do not use its classifications or recommendations for patient care.
 
-<div align="center">
+## Browser demonstration
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
-![Audit Trail](https://img.shields.io/badge/Audit-HMAC--SHA256_Tamper--Evident-brightgreen.svg)
-![Zero-PHI Guard](https://img.shields.io/badge/Guard-Zero--PHI_Outbound-blue.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)
+Open [web/index.html](web/index.html) in a modern browser. The self-contained interface evaluates synthetic task identifiers, two numeric metrics, a status descriptor, and a critical flag. It displays a JSON dossier and can download the result. JavaScript mirrors the rules in [agents/workers.py](agents/workers.py):
 
-</div>
+| Rule | Demonstration response |
+| --- | --- |
+| Primary metric > 25 | Elevated alert |
+| Secondary metric > 12 | Elevated alert |
+| Explicit critical flag | Critical alert |
+| Descriptor contains DISCORDANT, ANOMALY, MUTANT, VIOLATION, FAIL, or REJECT | Elevated alert |
+| No triggers | Routine |
 
----
+These arbitrary demonstration thresholds are **not OCT-specific reference intervals** or clinically validated thresholds. The browser implementation runs locally and does not transmit, collect, upload, or persist evaluation inputs or results. It does not create HMAC audit signatures; the exported JSON intentionally has a null audit hash. Do not enter patient-identifiable information.
 
-## 📖 What It Does
+A GitHub Pages publishing workflow is included; publication depends on the repository's Pages configuration. The browser app does not require Pyodide because the implemented rules are directly expressible in JavaScript.
 
-Retinal OCT Segmentation Agent is an enterprise-grade analytical platform for clinical decision support. It processes biomedical measurements through specialized worker agents, classifies urgency levels, and maintains a tamper-evident cryptographic audit trail. The system enforces zero-PHI (Protected Health Information) outbound guards to prevent accidental data leakage.
+## Python CLI and API
 
----
+Python 3.10 or newer is recommended.
 
-## ⚙️ Key Capabilities & Algorithmic Modules
+[Download or clone this repository](https://github.com/abusuraihsakhri/retinal-oct-segmentation-agent), then from the repository directory:
 
-- **Deterministic Calculation Engine**: Strict compliance with standard reference formulations and thresholds.
-- **Risk & Urgency Classification**: Multi-tier categorization (ROUTINE, ELEVATED, CRITICAL_STAT) with automated clinical/operational action recommendations.
-- **Validation & Guardrails**: Rigorous input bounds checking and anomaly detection.
-- **Multi-Worker Consensus**: InvariantQC, SafetyEscalation, and ProtocolConformance workers evaluate each task.
-- **Active Learning Calibration**: Bayesian weight tracking for worker reliability.
-
----
-
-## 💻 Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/abusuraihsakhri/retinal-oct-segmentation-agent.git
-cd retinal-oct-segmentation-agent
-
-# Install dependencies
-pip install -e ".[dev]"
-
-# Or install directly
-pip install pydantic fastapi uvicorn pytest
-```
-
----
-
-## 🚀 CLI Quickstart & Usage
-
-### 1. Run Single Task Evaluation
-```bash
-python cli.py audit --task-id TASK-001 --target KEY-01 --primary 28.5 --secondary 14.2 --critical --status DISCORDANT
-```
-
-### 2. Interactive Chat Query
-```bash
-python cli.py chat "What is the system status?"
-```
-
-### 3. Batch Process CSV Records
-```bash
-python cli.py batch -i sample.csv -o results.csv
-```
-
-### 4. Verify Audit Trail Integrity
-```bash
+~~~bash
+python -m pip install -e ".[dev]"
+python cli.py audit --task-id T001 --target X001 --primary 28.5 --secondary 14.2 --critical --status DISCORDANT
+python cli.py batch --input sample.csv --output results.csv
+python cli.py chat "What is the status?"
 python cli.py verify-audit
-```
-
-### 5. Launch FastAPI REST Server
-```bash
 python cli.py serve --host 127.0.0.1 --port 8000
-```
+~~~
 
-### Parameter Reference
-| Parameter | Description | Default |
-|:----------|:------------|:--------|
-| `--task-id` | Unique task/case identifier | TASK-2026-001 |
-| `--target` | Target specimen or entity identifier | KEY-TARGET-01 |
-| `--primary` | Primary measurement value (float) | 28.5 |
-| `--secondary` | Secondary metric value (float) | 14.2 |
-| `--critical` | Flag for critical/emergency escalation | False |
-| `--status` | Status descriptor (NOMINAL, DISCORDANT, etc.) | DISCORDANT |
+The main CLI and FastAPI application use the three workers in the agents/ package. The CLI CSV input requires task_id, target_identifier, and primary_metric; optional columns are secondary_metric, status_descriptor, and is_critical_flag. Invalid rows are skipped with warnings. Input and output paths must be distinct and remain within the current working directory.
 
-### Input Data Schema (CSV Batch)
+The local FastAPI service at http://127.0.0.1:8000 exposes:
 
-| Field | Description | Requirement |
-|:------|:------------|:------------|
-| `task_id` | Unique task identifier | Required |
-| `target_identifier` | Target specimen identifier | Required |
-| `primary_metric` | Primary measurement value | Required |
-| `secondary_metric` | Secondary metric value | Required |
-| `is_critical_flag` | Critical escalation flag (true/false) | Optional |
-| `status_descriptor` | Status/phenotype descriptor | Optional |
+| Route | Function |
+| --- | --- |
+| GET /health | Basic service metadata |
+| POST /api/audit | Rule-based evaluation |
+| POST /api/chat | Deterministic mock reply; not a live language model |
+| GET /metrics | JSON in-memory counters |
+| GET /api/audit/logs | HMAC audit-integrity summary; no per-task log data |
+| GET /docs | Generated OpenAPI documentation |
 
----
+The separate retina_oct_agent/ package and retina_oct_agent_app.py provide a legacy alternative runner with different thresholds and output structure. Its results should not be treated as interchangeable with the main agents/ implementation.
 
-## 🛡️ Security & Enterprise Architecture
+## Security and privacy
 
-* **Zero-PHI Outbound Interceptor:** Active regex inspection blocking SSNs, MRNs, phone numbers, emails, and patient identifiers.
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition. Signatures are verified on integrity checks.
-* **Path Traversal Protection:** Batch file operations validate paths remain within the working directory.
-* **Secure Defaults:** Audit secret key must be configured via `AUDIT_SECRET_KEY` environment variable (ephemeral key generated if not set).
-* **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks.
-* **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
+- The Python audit trail is signed with HMAC-SHA256 and stored **in process memory only**. It is not durable, independently timestamped, or a regulatory-compliant audit record.
+- Set AUDIT_SECRET_KEY to a unique random value for persistent signing-key consistency across restarts. An ephemeral key is generated if none is supplied.
+- Regex-based identifier screening catches some common MRN, phone, email and other identifier patterns. It **does not ensure de-identification, HIPAA compliance, or complete PHI prevention**.
+- The API has **no authentication** and must not be exposed directly to the public internet or given real patient data.
+- Other named language-model providers in agents/llm_factory.py currently return the same deterministic mock; they are not implemented integrations.
+- The formerly hard-coded Compose signing key must be regarded as disclosed and rotated if it was ever used.
 
----
+For local container use, copy .env.example to .env, generate a unique secret (for example with the command below), and assign it to AUDIT_SECRET_KEY. Then run docker compose up --build. Compose binds the service to localhost port 8000.
 
-## 🧪 Testing & Verification
+~~~bash
+python -c "import secrets; print(secrets.token_hex(32))"
+~~~
 
-Run the full automated test suite:
+## Development and tests
 
-```bash
-pytest -v
-```
+~~~bash
+python -m pip install -e ".[dev]"
+python -m pytest -q
+python -m compileall -q agents retina_oct_agent cli.py simulator.py enrichment.py
+node --check web/engine.js
+node --check web/app.js
+node --test web/test-*.cjs
+~~~
 
-Run with coverage:
+Python uses FastAPI, Pydantic v2, and Uvicorn. Browser functionality uses plain HTML, CSS and JavaScript with no framework, CDN or package install. The browser demo requires a current version of Chrome, Firefox, Safari, or Edge; older browsers without modern JavaScript syntax are not supported. CI checks Python 3.10–3.12 and executes the Node-based browser regression tests.
 
-```bash
-pytest -v --tb=short
-```
+## License
 
-Execute high-throughput simulation benchmarks:
-
-```bash
-python simulator.py 1000
-```
-
----
-
-## 🐳 Container Deployment
-
-```bash
-docker build -t retinal-oct-segmentation-agent .
-docker run -p 8000:8000 -e AUDIT_SECRET_KEY=your-secret-key retinal-oct-segmentation-agent
-```
-
-Or using Docker Compose:
-
-```bash
-docker-compose up -d
-```
-
----
-
-## 📁 Project Structure
-
-```
-retinal-oct-segmentation-agent/
-├── agents/                  # Core enterprise agent modules
-│   ├── __init__.py
-│   ├── api.py              # FastAPI REST endpoints
-│   ├── base.py             # Security, PHI guard, audit trail
-│   ├── learning.py         # Bayesian calibration engine
-│   ├── llm_factory.py      # LLM provider factory
-│   ├── metrics.py          # Prometheus metrics collector
-│   ├── models.py           # Pydantic data models
-│   ├── streamer.py         # WebSocket telemetry broadcaster
-│   ├── supervisor.py       # Master orchestrator
-│   └── workers.py          # Specialized worker agents
-├── retina_oct_agent/        # Frontier OCT analysis modules
-│   ├── agents.py           # Sub-agents and coordinator
-│   ├── cli.py              # Frontier CLI
-│   ├── engine.py           # Core algorithmic engine
-│   ├── models.py           # Frontier data models
-│   └── server.py           # Frontier FastAPI server
-├── tests/                   # Test suite
-│   ├── test_extended.py     # Security, batch, metrics tests
-│   ├── test_enrichment.py   # Enrichment module tests
-│   ├── test_retina_oct_agent.py  # Frontier agent tests
-│   └── test_retinal_oct_segmentation_agent.py  # Core agent tests
-├── web/                     # Operations console (HTML/JS)
-├── cli.py                   # Main CLI entry point
-├── enrichment.py            # Feature enrichment engines
-├── simulator.py             # High-throughput simulation
-├── pyproject.toml           # Project configuration
-├── Dockerfile               # Container build
-├── docker-compose.yml       # Container orchestration
-└── sample.csv               # Sample batch input data
-```
-
----
-
-## 🔧 Environment Variables
-
-| Variable | Description | Required |
-|:---------|:------------|:---------|
-| `AUDIT_SECRET_KEY` | Secret key for HMAC-SHA256 audit signing | Recommended |
-| `MODEL_PROVIDER` | LLM provider (mock, ollama, claude, openai) | No (default: mock) |
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+[MIT](LICENSE).

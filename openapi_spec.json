@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Retinal Oct Segmentation Engine API",
-    "description": "Enterprise Distributed Component Platform (Clinical & Cryptographic AI) adhering to CAP / CLSI / NIST Standards.",
+    "description": "Experimental rule-driven threshold evaluation API; it does not perform OCT image segmentation or make clinical decisions.",
     "version": "3.0.0-ENTERPRISE",
     "contact": {
       "name": "Dr. Abu Suraih Sakhri",
@@ -22,10 +22,10 @@
     },
     "/metrics": {
       "get": {
-        "summary": "Prometheus operational metrics",
+        "summary": "Basic in-memory operational counts (JSON)",
         "responses": {
           "200": {
-            "description": "Prometheus text metrics"
+            "description": "JSON status and counts"
           }
         }
       }
@@ -76,7 +76,7 @@
     },
     "/api/chat": {
       "post": {
-        "summary": "Air-gapped supervisory conversational assistant",
+        "summary": "Deterministic mock response; no external LLM integration",
         "requestBody": {
           "content": {
             "application/json": {
@@ -103,10 +103,10 @@
     },
     "/api/audit/logs": {
       "get": {
-        "summary": "Retrieve and cryptographically verify HMAC audit trail",
+        "summary": "Retrieve audit integrity summary without per-task log entries",
         "responses": {
           "200": {
-            "description": "Cryptographic audit trail"
+            "description": "Integrity boolean and signed-block count (JSON)"
           }
         }
       }
