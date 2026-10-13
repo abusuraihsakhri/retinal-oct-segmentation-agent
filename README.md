@@ -14,7 +14,7 @@ Open [web/index.html](web/index.html) in a modern browser. The self-contained in
 | Descriptor contains DISCORDANT, ANOMALY, MUTANT, VIOLATION, FAIL, or REJECT | Elevated alert |
 | No triggers | Routine |
 
-These arbitrary demonstration thresholds are **not OCT-specific reference intervals** or clinically validated thresholds. The browser implementation runs locally, makes no network requests, and does not collect, upload, or persist inputs. It does not create HMAC audit signatures; the exported JSON intentionally has a null audit hash. Do not enter patient-identifiable information.
+These arbitrary demonstration thresholds are **not OCT-specific reference intervals** or clinically validated thresholds. The browser implementation runs locally and does not transmit, collect, upload, or persist evaluation inputs or results. It does not create HMAC audit signatures; the exported JSON intentionally has a null audit hash. Do not enter patient-identifiable information.
 
 A GitHub Pages publishing workflow is included; publication depends on the repository's Pages configuration. The browser app does not require Pyodide because the implemented rules are directly expressible in JavaScript.
 

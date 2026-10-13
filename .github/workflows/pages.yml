@@ -28,8 +28,10 @@ jobs:
       - name: Check JavaScript
         run: node --check web/engine.js && node --check web/app.js && node --test web/test-*.cjs
       - uses: actions/configure-pages@v5
+      - name: Prepare only deployable assets
+        run: mkdir -p _site && cp web/index.html web/engine.js web/app.js _site/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: web
+          path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
