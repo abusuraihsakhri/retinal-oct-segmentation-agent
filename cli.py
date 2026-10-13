@@ -100,14 +100,28 @@ def main(argv=None):
             print("Error: Input and output paths must be within the working directory", file=sys.stderr)
             return 1
 
-        with open(input_path, mode="r", encoding="utf-8-sig") as f:
+        if input_path == output_path:
+            print("Error: Output path must differ from input path", file=sys.stderr)
+            return 1
+
+        with open(input_path, mode="r", encoding="utf-8-sig", newline="") as f:
             reader = csv.DictReader(f)
             fieldnames = list(reader.fieldnames or [])
+            if not fieldnames or len(fieldnames) != len(set(fieldnames)):
+                print("Error: CSV header is missing or contains duplicate columns", file=sys.stderr)
+                return 1
+            required = {"task_id", "target_identifier", "primary_metric"}
+            if not required.issubset(fieldnames):
+                print("Error: Missing required CSV columns", file=sys.stderr)
+                return 1
             rows = list(reader)
 
         out_fields = fieldnames + ["overall_urgency", "integrity_status", "total_alerts", "audit_hash"]
         out_rows = []
         for r in rows:
+            if None in r or any(r.get(col) in (None, "") for col in required):
+                print("Warning: Skipping row with missing or extra cells", file=sys.stderr)
+                continue
             try:
                 payload = SystemTaskPayload(
                     task_id=r.get("task_id", "TASK-01"),
@@ -117,7 +131,7 @@ def main(argv=None):
                     status_descriptor=r.get("status_descriptor", "NOMINAL"),
                     is_critical_flag=str(r.get("is_critical_flag", "")).lower() in ("true", "1", "yes"),
                 )
-            except (ValueError, Exception) as e:
+            except (ValueError, TypeError) as e:
                 print(f"Warning: Skipping malformed row {r}: {e}", file=sys.stderr)
                 continue
             dossier = supervisor.process_task(payload)
