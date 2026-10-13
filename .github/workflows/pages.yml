@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check JavaScript
-        run: node --check web/engine.js && node --check web/app.js && node --test web/test-engine.cjs
+        run: node --check web/engine.js && node --check web/app.js && node --test web/test-*.cjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

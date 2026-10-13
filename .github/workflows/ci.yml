@@ -26,4 +26,4 @@ jobs:
       - name: Browser JavaScript syntax
         run: node --check web/engine.js && node --check web/app.js
       - name: Browser rule engine regression tests
-        run: node --test web/test-engine.cjs
+        run: node --test web/test-*.cjs
