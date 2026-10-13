@@ -107,7 +107,7 @@ class TestLLMFactory:
         llm = MockLLM("Test System")
         result = llm.invoke("Test query about specifications")
         assert "Test System" in result
-        assert "analysis verified" in result
+        assert "No clinical verification performed" in result
 
     def test_mock_llm_blocks_phi(self):
         llm = MockLLM()

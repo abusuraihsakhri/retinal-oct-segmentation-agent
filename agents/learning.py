@@ -1,5 +1,5 @@
 """
-Autonomous Bayesian Calibration & Active Learning Feedback Engine for retinal-oct-segmentation-agent.
+Demonstration feedback weight tracking module for retinal-oct-segmentation-agent.
 """
 import math
 from typing import Dict, Any, List, Optional
@@ -13,7 +13,7 @@ class WorkerPerformanceMetric(BaseModel):
     dynamic_weight: float = 1.0
 
 class ActiveLearningEngine:
-    """Continuously refines sub-agent voting weights based on consensus feedback."""
+    """Tracks simple concordance-based weights. Weights are not used by the supervisor."""
 
     def __init__(self, system_name: str = "Retinal Oct Segmentation Agent"):
         self.system_name = system_name
